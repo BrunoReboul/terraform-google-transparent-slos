@@ -156,6 +156,10 @@ api_latency = {
 
 ***Observe the result on the last 28 days and set SLOs goals adapted to your context as an acheivable objective. Adapt also the burnrate threshlod to you context to avoid false positive and still be usefull.***
 
+## Adapt the monitoring channel to receive alerts
+
+By default the module create a pubsub topic to received the exessive error budget burn rate alerts. You can use the variable `notification_channels` to add the [notification channels](https://cloud.google.com/monitoring/support/notification-options) of you choice.
+
 ## To work with metric scopes
 
 For each project to be added in the metric scope, add to your main.tf a terraform resource [google_monitoring_monitored_project](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/monitoring_monitored_project)
