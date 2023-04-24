@@ -18,6 +18,11 @@ variable "project_id" {
   description = "GCP project id for a given environment, like dev or production"
 }
 
+variable "service_display_name" {
+  description = "The display name of the service monitoring custom service under which the SLOs will be created"
+  default     = "Dependency on Google APIs"
+}
+
 variable "pubsub_allowed_regions" {
   type    = list(string)
   default = ["europe-central2", "europe-north1", "europe-west1", "europe-west3", "europe-west4", "europe-west8", "europe-west9", "europe-southwest1"]

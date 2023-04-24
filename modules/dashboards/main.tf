@@ -19,6 +19,9 @@ resource "google_monitoring_dashboard" "consumed_api_request_count" {
   dashboard_json = <<EOF
 {
   "displayName": "Consumed API - Request count [SUM] over the last 28 days",
+  "labels": {
+    "${var.project_id}": ""
+  },
   "mosaicLayout": {
     "columns": 12,
     "tiles": [

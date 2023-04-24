@@ -179,10 +179,12 @@ When using `metric_scopes` monitored resources from all GCP monitored projects p
 
 You may want to deploy this module both at the `metric_scopes` hosting project level and in each of the monitored projects, so that it provides both an aggregated view in the `metric_scopes` (e.g. for BQ availability) and a break down view by monitored projects (e.g. for BQ latency that may depends on the SQL code).
 
-To make this easier you can leverage this module the variable `service_display_name` and include the project ID in its name. Example:
+Then, the `metric_scopes` hosting project will be the single place where to see all SLOs on Google APIs nicely grouped under a different service name in including the project ID, and it is possible the use the pre-populated label `project_id` to identify the scopes.
+
+To make this event easier you can leverage this module the variable `service_display_name` to additional customization in the `terraform.tfvars` file. Example:
 
 ```terraform
-  service_display_name   = "Dependency on Google APIs ${var.project_id}"
+service_display_name = "Dependency on Google APIs - aggregated"
 ```
 
- Then, the `metric_scopes` hosting project will be the single place where to see all SLOs on Google APIs nicely grouped under a different service name in including the project ID.
+Then, the `metric_scopes` hosting project will be the single place where to see all SLOs on Google APIs nicely grouped under a different service name for each project.
