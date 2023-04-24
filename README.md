@@ -174,3 +174,15 @@ resource "google_monitoring_monitored_project" "thispj" {
   name          = "locations/global/metricsScopes/${var.project_id}/projects/tjispj-project-id"
 }
 ```
+
+When using `metric_scopes` monitored resources from all GCP monitored projects part of the scope appears in the GCP project hosting that `metric_scopes`.
+
+You may want to deploy this module both at the `metric_scopes` hosting project level and in each of the monitored projects, so that it provides both an aggregated view in the `metric_scopes` (e.g. for BQ availability) and a break down view by monitored projects (e.g. for BQ latency that may depends on the SQL code).
+
+To make this easier you can leverage this module the variable `service_display_name` and include the project ID in its name. Example:
+
+```terraform
+  service_display_name   = "Dependency on Google APIs ${var.project_id}"
+```
+
+ Then, the `metric_scopes` hosting project will be the single place where to see all SLOs on Google APIs nicely grouped under a different service name in including the project ID.

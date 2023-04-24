@@ -17,8 +17,8 @@
 
 resource "google_monitoring_custom_service" "transparent_slis" {
   project      = var.project_id
-  service_id   = "google-consumed-apis"
-  display_name = "Dependency on Google APIs"
+  service_id   = var.service_id
+  display_name = var.service_display_name
 }
 
 resource "google_monitoring_slo" "availability" {

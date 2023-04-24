@@ -29,6 +29,8 @@ module "notifications" {
 module "slos" {
   source                = "./modules/slos"
   project_id            = var.project_id
+  service_id            = var.service_id
+  service_display_name  = var.service_display_name
   notification_channels = module.notifications.notification_channels
   availability          = var.api_availability
   latency               = var.api_latency
