@@ -6,7 +6,9 @@ Google publishes [transparent SLIs](https://cloud.google.com/blog/products/gcp/t
 
 You can leverage this data to set SLOs using Cloud Monitoring and be alerted when the specific Google APIs you consume in a specific project (or group of project aka metric scope) is not performing as usual.
 
-So that, in case of an outage of your service, it will speed up triage to understand from where comes the issue: you service vs the Google APIs you depends on.
+So that, in case of an outage of your service, it will speed up triage to understand from where comes the issue: you service vs the Google APIs you depends on. Example:
+
+![transparent_slo_example](_docs/transparent_slo_example.png)
 
 ## Pre-requisites
 
