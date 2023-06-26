@@ -24,7 +24,7 @@
 
 # module "transparent-slos" {
 #   source                  = "BrunoReboul/realtime-asset-monitor/google"
-#   version                 = "0.0.1"
+#   version                 = "0.0.2"
 #   project_id             = var.project_id
 #   pubsub_allowed_regions = var.pubsub_allowed_regions
 #   notification_channels  = var.notification_channels
