@@ -25,14 +25,14 @@ resource "google_monitoring_slo" "availability" {
   for_each            = var.availability
   project             = var.project_id
   service             = google_monitoring_custom_service.transparent_slis.service_id
-  slo_id              = "tsli-${lower(replace(each.value.method, ".", "-"))}-availability"
-  display_name        = "${lower(replace(each.value.method, ".", "-"))} availability: ${tostring(each.value.goal * 100)}% of responses over the last ${each.value.rolling_period_days} days should be served successfully"
+  slo_id              = "tsli-${each.value.prefix}-${lower(replace(each.value.method, ".", "-"))}-availability"
+  display_name        = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} availability: ${tostring(each.value.goal * 100)}% of responses over the last ${each.value.rolling_period_days} days should be served successfully"
   goal                = each.value.goal
   rolling_period_days = each.value.rolling_period_days
   request_based_sli {
     good_total_ratio {
-      good_service_filter = "metric.type=\"serviceruntime.googleapis.com/api/request_count\" metric.label.response_code_class=\"2xx\" resource.labels.service=\"${each.value.service}\" resource.labels.method=\"${each.value.method}\" resource.type=\"consumed_api\" resource.label.\"project_id\"=\"${var.project_id}\""
-      bad_service_filter  = "metric.type=\"serviceruntime.googleapis.com/api/request_count\" metric.label.response_code_class=\"5xx\" resource.labels.service=\"${each.value.service}\" resource.labels.method=\"${each.value.method}\" resource.type=\"consumed_api\" resource.label.\"project_id\"=\"${var.project_id}\""
+      good_service_filter = "metric.type=\"serviceruntime.googleapis.com/api/request_count\" metric.label.response_code_class=\"2xx\" resource.labels.service=\"${each.value.service}\" resource.labels.method=\"${each.value.method}\" resource.type=\"consumed_api\"${each.value.suffix_filter}"
+      bad_service_filter  = "metric.type=\"serviceruntime.googleapis.com/api/request_count\" metric.label.response_code_class=\"5xx\" resource.labels.service=\"${each.value.service}\" resource.labels.method=\"${each.value.method}\" resource.type=\"consumed_api\"${each.value.suffix_filter}"
     }
   }
 }
@@ -40,10 +40,10 @@ resource "google_monitoring_slo" "availability" {
 resource "google_monitoring_alert_policy" "availability_fast_burn" {
   for_each     = var.availability
   project      = var.project_id
-  display_name = "${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
+  display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
   combiner     = "OR"
   conditions {
-    display_name = "${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
+    display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
     condition_threshold {
       filter          = "select_slo_burn_rate(\"${google_monitoring_slo.availability[each.key].id}\", \"${each.value.alerting_fast_burn_loopback_period}\")"
       duration        = "0s"
@@ -60,10 +60,10 @@ resource "google_monitoring_alert_policy" "availability_fast_burn" {
 resource "google_monitoring_alert_policy" "availability_slow_burn" {
   for_each     = var.availability
   project      = var.project_id
-  display_name = "${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
+  display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
   combiner     = "OR"
   conditions {
-    display_name = "${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
+    display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} availability burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
     condition_threshold {
       filter          = "select_slo_burn_rate(\"${google_monitoring_slo.availability[each.key].id}\", \"${each.value.alerting_slow_burn_loopback_period}\")"
       duration        = "0s"
@@ -82,7 +82,7 @@ resource "google_monitoring_dashboard" "availability_dashboard" {
   project        = var.project_id
   dashboard_json = <<EOF
 {
-    "displayName": "slo_dependency_${lower(replace(each.value.method, ".", "-"))}-availability",
+    "displayName": "slo_dependency_${each.value.prefix}_${lower(replace(each.value.method, ".", "-"))}-availability",
     "mosaicLayout": {
         "columns": 12,
         "tiles": [
@@ -291,13 +291,13 @@ resource "google_monitoring_slo" "latency" {
   for_each            = var.latency
   project             = var.project_id
   service             = google_monitoring_custom_service.transparent_slis.service_id
-  slo_id              = "tsli-${lower(replace(each.value.method, ".", "-"))}-latency"
-  display_name        = "${lower(replace(each.value.method, ".", "-"))} latency: ${tostring(each.value.goal * 100)}% of responses over the last ${each.value.rolling_period_days} days should be served faster than ${each.value.threshold_str}"
+  slo_id              = "tsli-${each.value.prefix}-${lower(replace(each.value.method, ".", "-"))}-latency"
+  display_name        = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} latency: ${tostring(each.value.goal * 100)}% of responses over the last ${each.value.rolling_period_days} days should be served faster than ${each.value.threshold_str}"
   goal                = each.value.goal
   rolling_period_days = each.value.rolling_period_days
   request_based_sli {
     distribution_cut {
-      distribution_filter = "metric.type=\"serviceruntime.googleapis.com/api/request_latencies\" resource.labels.service=\"${each.value.service}\" resource.labels.method=\"${each.value.method}\" resource.type=\"consumed_api\" resource.label.\"project_id\"=\"${var.project_id}\""
+      distribution_filter = "metric.type=\"serviceruntime.googleapis.com/api/request_latencies\" resource.labels.service=\"${each.value.service}\" resource.labels.method=\"${each.value.method}\" resource.type=\"consumed_api\"${each.value.suffix_filter}"
       range {
         max = each.value.threshold_value
       }
@@ -308,10 +308,10 @@ resource "google_monitoring_slo" "latency" {
 resource "google_monitoring_alert_policy" "latency_fast_burn" {
   for_each     = var.latency
   project      = var.project_id
-  display_name = "${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
+  display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
   combiner     = "OR"
   conditions {
-    display_name = "${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
+    display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_fast_burn_loopback_period} > ${each.value.alerting_fast_burn_threshold}"
     condition_threshold {
       filter          = "select_slo_burn_rate(\"${google_monitoring_slo.latency[each.key].id}\", \"${each.value.alerting_fast_burn_loopback_period}\")"
       duration        = "0s"
@@ -328,10 +328,10 @@ resource "google_monitoring_alert_policy" "latency_fast_burn" {
 resource "google_monitoring_alert_policy" "latency_slow_burn" {
   for_each     = var.latency
   project      = var.project_id
-  display_name = "${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
+  display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
   combiner     = "OR"
   conditions {
-    display_name = "${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
+    display_name = "${each.value.prefix} ${lower(replace(each.value.method, ".", "-"))} latency ${each.value.threshold_str} burn rate last ${each.value.alerting_slow_burn_loopback_period} > ${each.value.alerting_slow_burn_threshold}"
     condition_threshold {
       filter          = "select_slo_burn_rate(\"${google_monitoring_slo.latency[each.key].id}\", \"${each.value.alerting_slow_burn_loopback_period}\")"
       duration        = "0s"
@@ -350,7 +350,7 @@ resource "google_monitoring_dashboard" "latency_dashboard" {
   project        = var.project_id
   dashboard_json = <<EOF
 {
-    "displayName": "slo_dependency_${lower(replace(each.value.method, ".", "-"))}-latency ${each.value.threshold_str}",
+    "displayName": "slo_dependency_${each.value.prefix}_${lower(replace(each.value.method, ".", "-"))}-latency ${each.value.threshold_str}",
     "mosaicLayout": {
         "columns": 12,
         "tiles": [

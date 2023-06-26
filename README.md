@@ -39,13 +39,16 @@ Uncomment and adapt
 ### create a `terraform.tfvars` file like
 
 ```terraform
-project_id = "<your-project-id>"
+project_id = "<your-project-id-hosting-targetted-metrics>"
+service_display_name = "Dependency on Google APIs - aggregated"
 
 api_availability = {
-  pubsub_publish = {
+  all_pubsub_publish = {
     rolling_period_days                = 28
     service                            = "pubsub.googleapis.com"
     method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "all"
+    suffix_filter                      = ""
     goal                               = 0.999
     alerting_fast_burn_loopback_period = "1h"
     alerting_fast_burn_threshold       = 10
@@ -55,10 +58,12 @@ api_availability = {
 }
 
 api_latency = {
-  pubsub_publish = {
+  all_pubsub_publish = {
     rolling_period_days                = 28
     service                            = "pubsub.googleapis.com"
     method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "all"
+    suffix_filter                      = ""
     goal                               = 0.95
     threshold_str                      = "400ms"
     threshold_value                    = 0.4
@@ -69,6 +74,50 @@ api_latency = {
   },
 }
 ```
+
+## When using metric scopes
+
+[Metric scopoes documentation](https://cloud.google.com/monitoring/settings)
+
+Whith out a suffix filter the SLOs / dashboards / Burnrate alerts will be provisionned on the metric scope, meaning all aggregated projects in scope.
+
+To create SLOs / dashboards / Burnrate alerts on a specific project aggregated in a metric scope use prefix and suffix like this:
+
+```terraform
+api_availability = {
+  pj1_pubsub_publish = {
+    rolling_period_days                = 28
+    service                            = "pubsub.googleapis.com"
+    method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
+    goal                               = 0.999
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+}
+
+api_latency = {
+  pj1_pubsub_publish = {
+    rolling_period_days                = 28
+    service                            = "pubsub.googleapis.com"
+    method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
+    goal                               = 0.95
+    threshold_str                      = "400ms"
+    threshold_value                    = 0.4
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+}
+```
+
+***WARNING*** 'Not equals' is not allowed for project restrictions
 
 ## Use the dashboard to find which APIs you consume most, aka main dependencies
 
@@ -83,31 +132,76 @@ Sort the colum `Lastest Value` by decreasing order so that most consumed APIs ap
 For the top3 example above it would be:
 
 ```terraform
+project_id = "<your-project-id-hosting-targetted-metrics>"
+service_display_name = "Dependency on Google APIs - aggregated"
+
 api_availability = {
-  pubsub_publish = {
+  pj1_pubsub_publish = {
     rolling_period_days                = 28
     service                            = "pubsub.googleapis.com"
     method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
     goal                               = 0.999
     alerting_fast_burn_loopback_period = "1h"
     alerting_fast_burn_threshold       = 10
     alerting_slow_burn_loopback_period = "24h"
     alerting_slow_burn_threshold       = 2
   },
-  bigquery_insertall = {
+  all_pubsub_publish = {
+    rolling_period_days                = 28
+    service                            = "pubsub.googleapis.com"
+    method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "all"
+    suffix_filter                      = ""
+    goal                               = 0.999
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+  pj1_bigquery_insertall = {
     rolling_period_days                = 28
     service                            = "bigquery.googleapis.com"
     method                             = "google.cloud.bigquery.v2.TableDataService.InsertAll"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
     goal                               = 0.999
     alerting_fast_burn_loopback_period = "1h"
     alerting_fast_burn_threshold       = 10
     alerting_slow_burn_loopback_period = "24h"
     alerting_slow_burn_threshold       = 2
   },
-  firestore_commit = {
+  all_bigquery_insertall = {
+    rolling_period_days                = 28
+    service                            = "bigquery.googleapis.com"
+    method                             = "google.cloud.bigquery.v2.TableDataService.InsertAll"
+    prefix                             = "all"
+    suffix_filter                      = ""
+    goal                               = 0.999
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+  pj1_firestore_commit = {
     rolling_period_days                = 28
     service                            = "firestore.googleapis.com"
     method                             = "google.firestore.v1.Firestore.Commit"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
+    goal                               = 0.999
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+  all_firestore_commit = {
+    rolling_period_days                = 28
+    service                            = "firestore.googleapis.com"
+    method                             = "google.firestore.v1.Firestore.Commit"
+    prefix                             = "all"
+    suffix_filter                      = ""
     goal                               = 0.999
     alerting_fast_burn_loopback_period = "1h"
     alerting_fast_burn_threshold       = 10
@@ -117,10 +211,12 @@ api_availability = {
 }
 
 api_latency = {
-  pubsub_publish = {
+  pj1_pubsub_publish = {
     rolling_period_days                = 28
     service                            = "pubsub.googleapis.com"
     method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
     goal                               = 0.95
     threshold_str                      = "400ms"
     threshold_value                    = 0.4
@@ -129,10 +225,26 @@ api_latency = {
     alerting_slow_burn_loopback_period = "24h"
     alerting_slow_burn_threshold       = 2
   },
-  bigquery_insertall = {
+  all_pubsub_publish = {
+    rolling_period_days                = 28
+    service                            = "pubsub.googleapis.com"
+    method                             = "google.pubsub.v1.Publisher.Publish"
+    prefix                             = "all"
+    suffix_filter                      = ""
+    goal                               = 0.95
+    threshold_str                      = "400ms"
+    threshold_value                    = 0.4
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+  pj1_bigquery_insertall = {
     rolling_period_days                = 28
     service                            = "bigquery.googleapis.com"
     method                             = "google.cloud.bigquery.v2.TableDataService.InsertAll"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
     goal                               = 0.95
     threshold_str                      = "150ms"
     threshold_value                    = 0.15
@@ -141,10 +253,40 @@ api_latency = {
     alerting_slow_burn_loopback_period = "24h"
     alerting_slow_burn_threshold       = 2
   },
-  firestore_commit = {
+  all_bigquery_insertall = {
+    rolling_period_days                = 28
+    service                            = "bigquery.googleapis.com"
+    method                             = "google.cloud.bigquery.v2.TableDataService.InsertAll"
+    prefix                             = "all"
+    suffix_filter                      = ""
+    goal                               = 0.95
+    threshold_str                      = "150ms"
+    threshold_value                    = 0.15
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+  pj1_firestore_commit = {
     rolling_period_days                = 28
     service                            = "firestore.googleapis.com"
     method                             = "google.firestore.v1.Firestore.Commit"
+    prefix                             = "pj1"
+    suffix_filter                      = " resource.label.\"project_id\"=\"your-project-one-project-id\""
+    goal                               = 0.95
+    threshold_str                      = "1s"
+    threshold_value                    = 1
+    alerting_fast_burn_loopback_period = "1h"
+    alerting_fast_burn_threshold       = 10
+    alerting_slow_burn_loopback_period = "24h"
+    alerting_slow_burn_threshold       = 2
+  },
+  all_firestore_commit = {
+    rolling_period_days                = 28
+    service                            = "firestore.googleapis.com"
+    method                             = "google.firestore.v1.Firestore.Commit"
+    prefix                             = "all"
+    suffix_filter                      = ""
     goal                               = 0.95
     threshold_str                      = "1s"
     threshold_value                    = 1
@@ -154,6 +296,7 @@ api_latency = {
     alerting_slow_burn_threshold       = 2
   },
 }
+
 ```
 
 ***Observe the result on the last 28 days and set SLOs goals adapted to your context as an acheivable objective. Adapt also the burnrate threshlod to you context to avoid false positive and still be usefull.***
